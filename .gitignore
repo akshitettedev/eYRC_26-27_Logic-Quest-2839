@@ -1,0 +1,16 @@
+# Quartus / ModelSim build artifacts
+db/
+incremental_db/
+output_files/
+simulation/
+*.qws
+*.rpt
+*.bak
+*.v.bak
+*.qpf.bak
+*.sof
+*.pof
+*.rbf
+*.jic
+*.sopcinfo
+c5_pin_model_dump.txt

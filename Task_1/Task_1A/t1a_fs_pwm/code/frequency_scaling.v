@@ -30,6 +30,24 @@ module frequency_scaling (
  add your code here 
  */
 
+    // Counts DOWN to 0. Reset holds the counter at 0 (as required) -
+    // and since 0 is also the toggle condition, the very first clock
+    // edge after reset releases fires a toggle immediately, instead of
+    // needing several cycles to count up to a trigger value first.
+    reg [2:0] count;
+
+    always @(posedge clk_50MHz or negedge reset_n) begin
+        if (!reset_n) begin
+            count    <= 3'd0;
+            clk_5MHz <= 1'b0;
+        end else if (count == 3'd0) begin
+            clk_5MHz <= ~clk_5MHz;
+            count    <= 3'd4;
+        end else begin
+            count <= count - 3'd1;
+        end
+    end
+
 //////////////////DO NOT MAKE ANY CHANGES BELOW THIS LINE //////////////////
 
 endmodule
