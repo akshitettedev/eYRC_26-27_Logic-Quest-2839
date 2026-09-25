@@ -1,4 +1,3 @@
-
 // controller.v - controller for RISC-V CPU
 
 module controller (
@@ -9,21 +8,26 @@ module controller (
     output       [1:0] ResultSrc,
     output       MemWrite,
     output       PCSrc, ALUSrc,
-    output       RegWrite, Jump,
-    output [1:0] ImmSrc,
-    output [2:0] ALUControl
+    output       [1:0] ALUSrcA,
+    output       RegWrite, Jump, Jalr,
+    output       [2:0] ImmSrc,
+    output       [2:0] ALUControl
 );
 
 wire [1:0] ALUOp;
 wire       Branch;
 
-main_decoder    md (op, ResultSrc, MemWrite, Branch,
-                    ALUSrc, RegWrite, Jump, ImmSrc, ALUOp);
+main_decoder md (
+    op, ResultSrc, MemWrite, Branch, ALUSrc, ALUSrcA,
+    RegWrite, Jump, ImmSrc, ALUOp
+);
 
-alu_decoder     ad (op[5], funct3, funct7b5, ALUOp, ALUControl);
+alu_decoder ad (
+    op[5], funct3, funct7b5, ALUOp, ALUControl
+);
 
-// for jump and branch
+// PC source for branch/jal; JALR uses its own source in the datapath.
 assign PCSrc = (Branch & Zero) | Jump;
+assign Jalr  = (op == 7'b1100111);
 
 endmodule
-
