@@ -1,5 +1,5 @@
 
-// data_mem.v - data memory (byte / half-word / word access selected by funct3)
+// data_mem.v - data memory
 
 module data_mem #(parameter DATA_WIDTH = 32, ADDR_WIDTH = 32, MEM_SIZE = 64) (
     input       clk, wr_en,
@@ -13,24 +13,25 @@ reg [DATA_WIDTH-1:0] data_ram [0:MEM_SIZE-1];
 
 wire [ADDR_WIDTH-1:0] word_addr = wr_addr[DATA_WIDTH-1:2] % 64;
 
+// start with all-zero data memory so reads of never-written locations are 0, not x
+integer k;
+initial begin
+    for (k = 0; k < MEM_SIZE; k = k + 1) data_ram[k] = 0;
+end
+
 // synchronous write logic
 always @(posedge clk) begin
     if (wr_en) begin
         case (funct3)
             3'b000: begin // sb
                 case (wr_addr[1:0])
-                    2'b00: data_ram[word_addr][ 7: 0] <= wr_data[7:0];
-                    2'b01: data_ram[word_addr][15: 8] <= wr_data[7:0];
-                    2'b10: data_ram[word_addr][23:16] <= wr_data[7:0];
-                    2'b11: data_ram[word_addr][31:24] <= wr_data[7:0];
+                    2'b00: data_ram[word_addr][ 7: 0] = wr_data[7:0];
+                    2'b01: data_ram[word_addr][15: 8] = wr_data[7:0];
+                    2'b10: data_ram[word_addr][23:16] = wr_data[7:0];
+                    2'b11: data_ram[word_addr][31:24] = wr_data[7:0];
                 endcase
             end
-            3'b001: begin // sh
-                if (wr_addr[1]) data_ram[word_addr][31:16] <= wr_data[15:0];
-                else            data_ram[word_addr][15: 0] <= wr_data[15:0];
-            end
             3'b010: data_ram[word_addr] <= wr_data; // sw
-            default: ;
         endcase
     end
 end
@@ -45,10 +46,6 @@ always @(*) begin
                 2'b11: rd_data_mem = {{24{data_ram[word_addr][31]}}, data_ram[word_addr][31:24]};
             endcase
         end
-        3'b001: begin // lh
-            if (wr_addr[1]) rd_data_mem = {{16{data_ram[word_addr][31]}}, data_ram[word_addr][31:16]};
-            else            rd_data_mem = {{16{data_ram[word_addr][15]}}, data_ram[word_addr][15: 0]};
-        end
         3'b100: begin // lbu
             case (wr_addr[1:0])
                 2'b00: rd_data_mem = {24'b0, data_ram[word_addr][ 7: 0]};
@@ -57,12 +54,10 @@ always @(*) begin
                 2'b11: rd_data_mem = {24'b0, data_ram[word_addr][31:24]};
             endcase
         end
-        3'b101: begin // lhu
-            if (wr_addr[1]) rd_data_mem = {16'b0, data_ram[word_addr][31:16]};
-            else            rd_data_mem = {16'b0, data_ram[word_addr][15: 0]};
-        end
-        default: rd_data_mem = data_ram[word_addr]; // lw (and word access for everything else)
+        3'b010: rd_data_mem = data_ram[word_addr]; // lw
+        default: rd_data_mem = 32'bx;
     endcase
 end
 
 endmodule
+

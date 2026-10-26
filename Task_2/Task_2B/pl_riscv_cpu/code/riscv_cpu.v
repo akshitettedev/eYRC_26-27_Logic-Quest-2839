@@ -1,4 +1,3 @@
-
 // riscv_cpu.v - 5-stage pipelined RISC-V CPU Processor
 
 module riscv_cpu (
@@ -13,23 +12,32 @@ module riscv_cpu (
     output [31:0] PCW, ALUResultW, WriteDataW
 );
 
+// control signals produced in Decode from the instruction held in IF/ID
 wire [31:0] InstrD;
-wire        ALUSrc, RegWrite, Branch, Jump, Jalr, MemWriteD;
-wire [1:0]  ResultSrc, ALUSrcA;
-wire [2:0]  ImmSrc;
-wire [3:0]  ALUControl;
+wire        ALUSrcD, RegWriteD, MemWriteD, BranchD, JumpD, JalrD;
+wire [1:0]  ResultSrcD, ALUSrcAD;
+wire [2:0]  ImmSrcD;
+wire [3:0]  ALUControlD;
 
-// control signals are generated in Decode
 controller  c   (InstrD[6:0], InstrD[14:12], InstrD[30],
-                ResultSrc, MemWriteD, ALUSrc, ALUSrcA,
-                RegWrite, Branch, Jump, Jalr, ImmSrc, ALUControl);
+                 ResultSrcD, MemWriteD, ALUSrcD, ALUSrcAD,
+                 RegWriteD, BranchD, JumpD, JalrD, ImmSrcD, ALUControlD);
 
-datapath    dp  (clk, reset,
-                ResultSrc, MemWriteD, ALUSrc, ALUSrcA,
-                RegWrite, Branch, Jump, Jalr, ImmSrc, ALUControl,
-                InstrD,
-                PC, Instr,
-                MemWrite, Mem_WrAddr, Mem_WrData, ReadData, funct3,
-                Result, PCW, ALUResultW, WriteDataW);
+datapath    dp  (.clk(clk), .reset(reset),
+                 .ResultSrcD(ResultSrcD), .MemWriteD(MemWriteD),
+                 .ALUSrcD(ALUSrcD), .ALUSrcAD(ALUSrcAD),
+                 .RegWriteD(RegWriteD), .BranchD(BranchD),
+                 .JumpD(JumpD), .JalrD(JalrD),
+                 .ImmSrcD(ImmSrcD), .ALUControlD(ALUControlD),
+                 .InstrD(InstrD),
+                 .PC(PC), .Instr(Instr),
+                 .MemWrite(MemWrite), .Mem_WrAddr(Mem_WrAddr),
+                 .Mem_WrData(Mem_WrData), .ReadData(ReadData),
+                 .Result(Result), .PCW(PCW),
+                 .ALUResultW(ALUResultW), .WriteDataW(WriteDataW));
+
+// data_mem is always accessed as a full word (010): the datapath does the
+// byte / half-word alignment and the read-modify-write of sub-word stores.
+assign funct3 = 3'b010;
 
 endmodule

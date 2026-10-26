@@ -89,4 +89,25 @@ set_global_assignment -name VERILOG_FILE code/components/controller.v
 set_global_assignment -name VERILOG_FILE code/components/alu_decoder.v
 set_global_assignment -name VERILOG_FILE code/components/alu.v
 set_global_assignment -name VERILOG_FILE code/components/adder.v
+set_global_assignment -name SDC_FILE pl_riscv_cpu.sdc
+set_global_assignment -name NUM_PARALLEL_PROCESSORS 4
+# Informational/template-driven messages: memories are fixed-size by the task rules
+# (10850 hex shorter than memory, 10030/127007 inferred instr_mem), no board pins exist
+# for the 67 inputs (15714/169085), LogicLock comes from the template partition (292013).
+set_global_assignment -name MESSAGE_DISABLE 10850
+set_global_assignment -name MESSAGE_DISABLE 10030
+set_global_assignment -name MESSAGE_DISABLE 127007
+set_global_assignment -name MESSAGE_DISABLE 15714
+set_global_assignment -name MESSAGE_DISABLE 169085
+set_global_assignment -name MESSAGE_DISABLE 292013
+# The top-level port list is fixed by the testbench (225 outputs > 139 device pins).
+# Virtual pins let the Fitter complete; they do not change any port or the simulation.
+set_instance_assignment -name VIRTUAL_PIN ON -to MemWrite
+set_instance_assignment -name VIRTUAL_PIN ON -to WriteData[*]
+set_instance_assignment -name VIRTUAL_PIN ON -to DataAdr[*]
+set_instance_assignment -name VIRTUAL_PIN ON -to ReadData[*]
+set_instance_assignment -name VIRTUAL_PIN ON -to PCW[*]
+set_instance_assignment -name VIRTUAL_PIN ON -to Result[*]
+set_instance_assignment -name VIRTUAL_PIN ON -to ALUResultW[*]
+set_instance_assignment -name VIRTUAL_PIN ON -to WriteDataW[*]
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

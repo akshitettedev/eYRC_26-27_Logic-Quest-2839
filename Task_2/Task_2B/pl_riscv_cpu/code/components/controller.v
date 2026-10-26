@@ -1,5 +1,7 @@
-
-// controller.v - controller for RISC-V CPU (works on the instruction in the Decode stage)
+// controller.v - controller for RISC-V CPU (Decode stage)
+//
+// Branch conditions are NOT resolved here any more: a branch is only known
+// in Execute (see branching_unit.v), so the controller just flags the branch.
 
 module controller (
     input  [6:0] op,
@@ -17,10 +19,8 @@ module controller (
 wire [1:0] ALUOp;
 
 main_decoder    md (op, ResultSrc, MemWrite, Branch, ALUSrc, ALUSrcA,
-                    RegWrite, Jump, ImmSrc, ALUOp);
+                    RegWrite, Jump, Jalr, ImmSrc, ALUOp);
 
 alu_decoder     ad (op[5], funct3, funct7b5, ALUOp, ALUControl);
-
-assign Jalr = (op == 7'b1100111);
 
 endmodule
